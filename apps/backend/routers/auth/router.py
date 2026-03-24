@@ -6,7 +6,7 @@ from .services import check_user_credentials, create_tokens, create_user, get_us
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login")
-async def login(response : Response,login_request: LoginRequest):
+def login(response : Response,login_request: LoginRequest):
     identifier = login_request.identifier
     password = login_request.password
     if not check_user_credentials(identifier, password):
@@ -17,7 +17,7 @@ async def login(response : Response,login_request: LoginRequest):
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @router.post("/register")
-async def register(response: Response,register_request: RegisterRequest, payload = Depends(verify_access_token)):
+def register(response: Response,register_request: RegisterRequest, payload = Depends(verify_access_token)):
     if payload is None or payload.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin privileges required")
     if get_user_data(register_request.identifier) or get_user_data(register_request.email):
@@ -30,7 +30,7 @@ async def register(response: Response,register_request: RegisterRequest, payload
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @router.post("/refresh")
-async def refresh(response: Response, payload = Depends(verify_refresh_token)):
+def refresh(response: Response, payload = Depends(verify_refresh_token)):
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     user_id = payload.get("sub")
@@ -40,7 +40,7 @@ async def refresh(response: Response, payload = Depends(verify_refresh_token)):
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 @router.post("/logout")
-async def logout(response: Response, payload = Depends(verify_refresh_token)):
+def logout(response: Response, payload = Depends(verify_refresh_token)):
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     revoke_refresh_token(payload["token"])
@@ -48,5 +48,5 @@ async def logout(response: Response, payload = Depends(verify_refresh_token)):
     return {"message": "Logged out successfully"}
 
 @router.get("/me")
-async def me(payload = Depends(verify_access_token)):
+def me(payload = Depends(verify_access_token)):
     return {"user_id": payload["sub"]}
