@@ -1,5 +1,5 @@
 
-from fastapi import Depends, Request, HTTPException
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer
 from pwdlib import PasswordHash
 from hashlib import sha256
@@ -27,23 +27,3 @@ def verify_access_token(token = Depends(oauth2_scheme)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired access token")
     
-def verify_refresh_token(request: Request):
-    token = request.cookies.get("refresh_token")
-    if token is None:
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            return None
-        token_hash = hash_string(token)
-        with db_connection() as cursor:
-            cursor.execute("SELECT * FROM refresh_tokens WHERE token = %s", (token_hash,))
-            result = cursor.fetchone()
-            if result is None or result.get("is_revoked") == 1:
-                return None
-        payload["token"] = token
-        return payload
-    except jwt.PyJWTError as e:
-        print(e)    
-        return None

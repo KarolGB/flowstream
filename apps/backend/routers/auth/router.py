@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from .schemas import LoginRequest, RegisterRequest
-from core.security import verify_access_token, verify_refresh_token
-from .services import check_user_credentials, create_tokens, create_user, get_user_data, revoke_refresh_token
+from core.security import verify_access_token
+from .services import check_user_credentials, create_tokens, create_user, get_user_data, revoke_refresh_token, verify_refresh_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

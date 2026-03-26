@@ -1,9 +1,12 @@
 
+from fastapi import Request
 import jwt
 from db.database import db_connection
 from core.config import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
 from datetime import datetime, timedelta, timezone
 from core.security import hash_string, pwd_hasher
+from .schemas import RefreshTokenRequest
+
 
 
 def check_user_credentials(username: str, password: str) -> bool:
@@ -21,7 +24,7 @@ def get_user_data(identifier:str):
         result = cursor.fetchone()
         return result
     
-def create_user(username: str, password: str, email: str) -> bool:
+def create_user(username: str, password: str, email: str)-> bool:
     hashed_password = pwd_hasher.hash(password)
     with db_connection() as cursor:
         try:
@@ -55,3 +58,27 @@ def revoke_refresh_token(token: str):
     token_hash = hash_string(token)
     with db_connection() as cursor:
         cursor.execute("UPDATE refresh_tokens SET is_revoked = 1 WHERE token = %s", (token_hash,))
+        
+def verify_refresh_token(request: Request, refresh_token: RefreshTokenRequest):
+    print(refresh_token.refresh_token)
+    token = request.cookies.get("refresh_token")
+    if token is None:
+        token = refresh_token.refresh_token
+    if token is None:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        token_hash = hash_string(token)
+        with db_connection() as cursor:
+            cursor.execute("SELECT * FROM refresh_tokens WHERE token = %s", (token_hash,))
+            result = cursor.fetchone()
+            if result is None or result.get("is_revoked") == 1:
+                return None
+        payload["token"] = token
+        return payload
+    except jwt.PyJWTError as e:
+        print(e)    
+        return None
