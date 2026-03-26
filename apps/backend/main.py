@@ -12,5 +12,9 @@ app.include_router(playlist_router)
 app.include_router(streaming_router)
 app.include_router(catalog_router)
 
+@app.get("/")
+def index():
+    return {"message": "API Is Working"}
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
