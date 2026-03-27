@@ -60,7 +60,6 @@ def revoke_refresh_token(token: str):
         cursor.execute("UPDATE refresh_tokens SET is_revoked = 1 WHERE token = %s", (token_hash,))
         
 def verify_refresh_token(request: Request, refresh_token: RefreshTokenRequest):
-    print(refresh_token.refresh_token)
     token = request.cookies.get("refresh_token")
     if token is None:
         token = refresh_token.refresh_token
