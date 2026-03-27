@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import '../global.css';
-import { AuthProvider,useAuth } from '../context/AuthContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from '../context/AuthContext';
+import '../global.css';
 
 
 const InitialLayout = () => {
-    const {isAuthenticated, isLoading, hasUrl} = useAuth()
-    
+    const { isAuthenticated, isLoading, hasUrl } = useAuth()
+
     const router = useRouter();
-    const segments = useSegments(); 
+    const segments = useSegments();
 
     useEffect(() => {
         if (hasUrl === null) return;
@@ -22,27 +21,32 @@ const InitialLayout = () => {
 
         if (!hasUrl && !inSetupScreen) {
             router.replace('/setup');
-        } else if(hasUrl && !isAuthenticated && !inLoginScreen && !isLoading){
+        } else if (hasUrl && !isAuthenticated && !inLoginScreen && !isLoading) {
             router.replace("/login")
-        }else if(hasUrl && isAuthenticated && !inTabsGroup){
+        } else if (hasUrl && isAuthenticated && !inTabsGroup) {
             router.replace("/(tabs)")
         }
     }, [hasUrl, segments, isAuthenticated]);
 
-    if (hasUrl === null || isLoading ) {
+    if (hasUrl === null || isLoading) {
         return (
-            <View style={{ flex: 1, backgroundColor: '#121212', justifyContent: 'center', alignItems: 'center' }}>
+            <View className='flex-1 bg-neutral-950 justify-center align-center'>
                 <ActivityIndicator size="large" color="#1DB954" />
             </View>
         );
     }
-    return <Stack screenOptions={{ headerShown: false }} />;
+    return <Stack screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#0a0a0a" },
+        animation: 'fade'
+    }}
+    />;
 }
 
 export default function RootLayout() {
     return (
         <AuthProvider>
-            <SafeAreaProvider>
+            <SafeAreaProvider className='bg-neutral-950'>
                 <InitialLayout />
             </SafeAreaProvider>
         </AuthProvider>
