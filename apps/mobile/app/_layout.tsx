@@ -8,23 +8,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 const InitialLayout = () => {
-    const [hasUrl, setHasUrl] = useState<boolean | null>(null);
-    const {isAuthenticated, isLoading} = useAuth()
+    const {isAuthenticated, isLoading, hasUrl} = useAuth()
     
     const router = useRouter();
     const segments = useSegments(); 
-
-    useEffect(() => {
-        const checkStorage = async () => {
-            try {
-                const url = await SecureStore.getItemAsync('baseUrl');
-                setHasUrl(!!url);
-            } catch (e) {
-                setHasUrl(false);
-            }
-        };
-        checkStorage();
-    }, []);
 
     useEffect(() => {
         if (hasUrl === null) return;
@@ -33,7 +20,6 @@ const InitialLayout = () => {
         const inLoginScreen = segments[0] === "login"
         const inTabsGroup = segments[0] === "(tabs)"
 
-        console.log(hasUrl,isAuthenticated,inTabsGroup)
         if (!hasUrl && !inSetupScreen) {
             router.replace('/setup');
         } else if(hasUrl && !isAuthenticated && !inLoginScreen && !isLoading){

@@ -3,11 +3,12 @@ import { TextInput, Pressable,Text } from "react-native"
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import apiClient from "../api/client";
 import * as SecureStore from 'expo-secure-store';
+import { useAuth } from "../context/AuthContext";
 
 const setup = () => {
     const [url,setUrl] = useState("");
     const [error,setError] = useState("");
-
+    const {saveUrl} = useAuth()
     const validateUrl = async () => {
         if (!url) return;
         let cleanUrl = url.trim();
@@ -27,19 +28,11 @@ const setup = () => {
                 return
             }
             setError("")
-            storeUrl(cleanUrl)
+            saveUrl(cleanUrl)
             
         } catch (error) {
             console.log(error)
             setError("No hay conexion con la api")
-        }
-    }
-
-    const storeUrl = async (url: string) => {
-        try {
-            await SecureStore.setItemAsync('baseUrl', url);
-        } catch (e) {
-            console.log(e)
         }
     }
 
