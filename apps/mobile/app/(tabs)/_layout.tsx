@@ -1,67 +1,102 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from "react-native"
+import { Text, View, Image, TouchableOpacity } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Entypo from '@expo/vector-icons/Entypo';
+import Foundation from '@expo/vector-icons/Foundation';
+import { usePlayer } from '../../context/PlayerContext';
+
+
+
+
 
 
 export default function TabsLayout() {
   const { logout } = useAuth()
+  const { play, pause, isPlaying, currentTrack } = usePlayer()
+
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
-      <Text className='text-white' onPress={logout}>Logout</Text>
+    <View className="flex-1 bg-neutral-950">
       <Tabs
         screenOptions={{
-          headerShown: false, // Ocultamos la cabecera fea por defecto de arriba
+          headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#0a0a0a', // Fondo casi negro puro (neutral-950)
-            borderTopColor: '#262626', // Borde sutil gris oscuro
-            paddingBottom: 12, // Espacio para la barrita de iOS
+            backgroundColor: '#0a0a0a',
+            borderTopColor: '#262626',
+            paddingBottom: 12,
             paddingTop: 5,
+            height: 65,
           },
-          tabBarActiveTintColor: '#d946ef', // Fuchsia vibrante para la pestaña activa
-          tabBarInactiveTintColor: '#525252', // Gris apagado para las inactivas
-          tabBarShowLabel: true, // Mostrar el texto debajo del icono
+          tabBarActiveTintColor: '#d946ef',
+          tabBarInactiveTintColor: '#525252',
+          tabBarShowLabel: true,
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 'bold',
           }
         }}
       >
-        {/* 1. Pestaña de INICIO */}
         <Tabs.Screen
-          name="index" // Apunta al archivo index.tsx
+          name="index"
           options={{
             title: 'Inicio',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? "home" : "home-outline"} size={26} color={color} />
-            ),
+            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "home" : "home-outline"} size={26} color={color} />,
           }}
         />
-
-        {/* 2. Pestaña de BUSCAR */}
         <Tabs.Screen
-          name="search" // Apunta al archivo search.tsx
+          name="search"
           options={{
             title: 'Buscar',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? "search" : "search-outline"} size={26} color={color} />
-            ),
+            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "search" : "search-outline"} size={26} color={color} />,
           }}
         />
-
-        {/* 3. Pestaña de BIBLIOTECA */}
         <Tabs.Screen
-          name="library" // Apunta al archivo library.tsx
+          name="library"
           options={{
             title: 'Biblioteca',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? "library" : "library-outline"} size={26} color={color} />
-            ),
+            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "library" : "library-outline"} size={26} color={color} />,
           }}
         />
       </Tabs>
-    </SafeAreaView>
 
+      {currentTrack && (
+        <View className='absolute bottom-[65px] w-[96%] self-center flex-row items-center bg-neutral-900 rounded-xl p-2 border border-neutral-800 shadow-lg shadow-black'>
+
+          <Image
+            className='w-12 h-12 rounded-md bg-neutral-800'
+            source={{ uri: currentTrack?.thumbnail_url }}
+          />
+
+          <View className='justify-center ml-3 flex-1'>
+            <Text className='text-white font-bold text-sm' numberOfLines={1}>{currentTrack?.title}</Text>
+            <Text className='text-fuchsia-500 text-xs' numberOfLines={1}>{currentTrack?.artist}</Text>
+          </View>
+
+          <View className='flex-row gap-4 items-center mr-2'>
+            <TouchableOpacity>
+              <Foundation name="previous" size={28} color="#d946ef" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={isPlaying ? pause : play}>
+              {isPlaying ? (
+                <MaterialIcons name="pause-circle" size={36} color="#d946ef" />
+              ) : (
+                <MaterialIcons name="play-circle" size={36} color="#d946ef" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity>
+              <Entypo name="controller-next" size={28} color="#d946ef" />
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      )}
+
+
+
+    </View>
   );
 }

@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { DeviceEventEmitter } from 'react-native'
 
 const apiClient = axios.create({
-    timeout:1000,
+    timeout:10000,
     headers: {
         "Content-Type": "application/json"
     }
@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             try{
                 const refresh_token = await SecureStore.getItemAsync('refresh_token')
