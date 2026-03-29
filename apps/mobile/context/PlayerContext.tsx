@@ -2,7 +2,11 @@ import { createContext, useContext, ReactNode, useState, useEffect } from "react
 import { useAudioPlayer } from "expo-audio"
 
 export interface Track {
-    youtube_id: string; title: string; artist: string; thumbnail_url: string; url: string;
+    youtube_id: string;
+    title: string;
+    artist: string;
+    thumbnail_url: string;
+    url: string;
 }
 
 interface PlayerContextType {
@@ -38,15 +42,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
 
-
-
     const player = useAudioPlayer("");
-
-    useEffect(() => {
-        console.log(isPlaying)
-    }, [isPlaying])
-
-
 
     const play = () => {
         player.play()
