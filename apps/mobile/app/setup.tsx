@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { TextInput, Pressable, Text, View } from "react-native"
+import { TextInput, Text, View, KeyboardAvoidingView } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiClient from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -37,16 +37,19 @@ const setup = () => {
 
 
     return (
-        <SafeAreaView className="flex flex-1 bg-neutral-950 justify-center items-center gap-16">
-            <FlowStreamHero />
-            <View className="w-2/3 gap-4">
-                {error && <Text className="text-red-500 text-center">{error}</Text>}
-                <View>
-                    <TextInput onChangeText={setUrl} autoFocus={true} value={url} className="w-full text-white border border-white px-4 pr-12 mx-4 rounded-xl" placeholder="https://..." keyboardType="url" autoCapitalize="none" placeholderTextColor="gray"></TextInput>
-                    <FontAwesome5 name="arrow-right" size={24} color="purple" className="absolute right-0 top-2/4 transform -translate-y-2/4 z-20 p-2" onPress={validateUrl} />
+        <SafeAreaView className="flex flex-1 bg-neutral-950 ">
+            <KeyboardAvoidingView behavior="padding" className="flex-1 justify-center items-center gap-16">
+
+                <FlowStreamHero />
+                <View className="w-2/3 gap-4">
+                    {error && <Text className="text-red-500 text-center">{error}</Text>}
+                    <View>
+                        <TextInput onChangeText={setUrl} autoFocus={true} value={url} className="w-full text-white border border-white px-4 pr-12 mx-4 rounded-xl" placeholder="https://..." keyboardType="url" autoCapitalize="none" placeholderTextColor="gray"></TextInput>
+                        <FontAwesome5 name="arrow-right" size={24} color="purple" className="absolute right-0 top-2/4 transform -translate-y-2/4 z-20 p-2" onPress={validateUrl} />
+                    </View>
+                    <Text className="text-white text-center">Address Of Your API Server</Text>
                 </View>
-                <Text className="text-white text-center">Address Of Your API Server</Text>
-            </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     )
 }
