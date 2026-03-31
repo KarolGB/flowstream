@@ -1,26 +1,26 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "flowstream",
+    "slug": "flowstream",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icono.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0a0a0a",
+    "backgroundColor": "#111111",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icono.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
+      "backgroundColor": "#111111"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a0a",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#111111",
+        "foregroundImage": "./assets/icono.png",
+        "backgroundImage": "./assets/icono.png",
+        "monochromeImage": "./assets/icono.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.mobile",
