@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 from routers.auth.router import router as auth_router
 from routers.playlists.router import router as playlist_router
 from routers.streaming.router import router as streaming_router
 from routers.catalog.router import router as catalog_router
 
-app = FastAPI()
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,6 +25,3 @@ app.include_router(catalog_router)
 @app.get("/")
 def index():
     return {"message": "API Is Working"}
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
