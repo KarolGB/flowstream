@@ -23,3 +23,11 @@ def create_playlist_db(user_id,name,description = ""):
         cursor.execute("INSERT INTO playlists (name, description, user_id) VALUES (%s, %s, %s)", (name, description, user_id))
         playlist_id = cursor.lastrowid
     return playlist_id
+
+def get_playlist_tracks(playlists):
+    with db_connection() as cursor:
+        for playlist in playlists:
+            cursor.execute("SELECT COUNT(*) as total_tracks FROM playlists_tracks WHERE playlist_id = %s", (playlist["id"],))
+            total_tracks = cursor.fetchone()["total_tracks"]
+            playlist["total_tracks"] = total_tracks
+    return playlists

@@ -13,4 +13,4 @@ class PlaylistAddTrack(BaseModel):
     name:str
     artist:str
     thumbnail:str
-    duration_seconds:str
+    duration_seconds:int

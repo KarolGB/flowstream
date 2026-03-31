@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from core.security import verify_access_token
 from db.database import db_connection
 from .schemas import PlaylistCreateRequest, PlaylistAddTrack
-from .services import get_csv_tracks, create_playlist_db
+from .services import get_csv_tracks, create_playlist_db, get_playlist_tracks
 from infraestructure.youtube.client import search_tracks
 
 
@@ -14,7 +14,10 @@ def get_playlists(payload = Depends(verify_access_token)):
     with db_connection() as cursor:
         cursor.execute("SELECT * FROM playlists WHERE user_id = %s", (user_id,))
         playlists = cursor.fetchall()
-    return playlists
+    if not playlists:
+        raise HTTPException(status_code=404, detail="No se encontraron playlists")
+    playlists = get_playlist_tracks(playlists)
+    return {"playlists":playlists}
 
 @router.post("/")
 def create_playlist(playlist_data: PlaylistCreateRequest, payload = Depends(verify_access_token)):
@@ -22,7 +25,10 @@ def create_playlist(playlist_data: PlaylistCreateRequest, payload = Depends(veri
     playlist_id = create_playlist_db(user_id,playlist_data.name,playlist_data.description)
     if not playlist_id:
         raise HTTPException(status_code=400, detail="Error al crear la playlist")
-    return {"message": "Playlist created successfully"}
+    with db_connection() as cursor:
+        cursor.execute("SELECT * FROM playlists WHERE user_id = %s and id = %s", (user_id,playlist_id))
+        playlist = cursor.fetchone()
+    return {"playlist": playlist}
 
 @router.get("/{playlist_id}")
 def get_playlist(playlist_id: str, payload = Depends(verify_access_token)):
@@ -32,16 +38,19 @@ def get_playlist(playlist_id: str, payload = Depends(verify_access_token)):
         playlist = cursor.fetchone()
         if not playlist:
             raise HTTPException(status_code=404, detail="Playlist no encontrada")
-        if playlist["is_public"] == 1 or playlist["user_id"] == user_id:
-            tracks_query = "SELECT t.id,t.youtube_id,t.title,t.artist,t.thumbnail,t.duration_seconds,pt.position from playlists_tracks as pt inner join tracks as t on pt.track_id = t.id where pt.playlist_id = %s ORDER BY pt.position ASC"
+        if playlist["is_public"] == 1 or playlist["user_id"] == int(user_id):
+            tracks_query = "SELECT t.id,t.youtube_id,t.title,t.artist,t.thumbnail,t.duration_seconds,pt.position, sum(t.duration_seconds) over() as total_duration from playlists_tracks as pt inner join tracks as t on pt.track_id = t.id where pt.playlist_id = %s ORDER BY pt.position ASC"
             cursor.execute(tracks_query, (playlist_id,))
             tracks = cursor.fetchall()
             return {
-                "id": playlist["id"],
-                "name": playlist["name"],
-                "description": playlist["description"],
-                "total_tracks": len(tracks),
-                "tracks": tracks
+                "playlist":{
+                    "id": playlist["id"],
+                    "name": playlist["name"],
+                    "description": playlist["description"],
+                    "total_tracks": len(tracks),
+                    "total_duration": tracks[0]["total_duration"] if tracks else 0
+                },
+                "playlist_tracks":tracks
             }
         raise HTTPException(status_code=403, detail="No tienes acceso a esta playlist")
 
