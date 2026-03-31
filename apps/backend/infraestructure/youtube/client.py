@@ -29,7 +29,7 @@ def search_tracks(query: str):
                 "title": item.get("title"),
                 "artist": item["artists"][0]["name"] if item.get("artists") else "Desconocido",
                 "duration_seconds": item.get("duration_seconds"),
-                "thumbnail_url": item["thumbnails"][-1]["url"] if item.get("thumbnails") else None
+                "thumbnail": item["thumbnails"][-1]["url"] if item.get("thumbnails") else None
             })
         return clean_results
 
