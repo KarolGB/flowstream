@@ -5,7 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import '../global.css';
 import { PlayerProvider } from '../context/PlayerContext';
-
+import { PlaylistProvider } from '../context/PlaylistContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 const InitialLayout = () => {
     const { isAuthenticated, isLoading, hasUrl } = useAuth()
@@ -31,9 +32,7 @@ const InitialLayout = () => {
 
     if (hasUrl === null || isLoading) {
         return (
-            <View className='flex-1 bg-neutral-950 justify-center align-center'>
-                <ActivityIndicator size="large" color="#1DB954" />
-            </View>
+            <LoadingScreen />
         );
     }
     return <Stack screenOptions={{
@@ -48,9 +47,11 @@ export default function RootLayout() {
     return (
         <AuthProvider>
             <PlayerProvider>
-                <SafeAreaProvider className='bg-neutral-950'>
-                    <InitialLayout />
-                </SafeAreaProvider>
+                <PlaylistProvider>
+                    <SafeAreaProvider className='bg-neutral-950'>
+                        <InitialLayout />
+                    </SafeAreaProvider>
+                </PlaylistProvider>
             </PlayerProvider>
         </AuthProvider>
     );

@@ -30,7 +30,7 @@ const setup = () => {
             saveUrl(cleanUrl)
 
         } catch (error) {
-            setError("No hay conexion con la api")
+            setError(`No hay conexion con la api, asegurate que sea https://... y que el servidor este corriendo`)
         }
     }
 

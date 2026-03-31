@@ -1,8 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View, Image, TouchableOpacity } from "react-native"
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../context/AuthContext';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Entypo from '@expo/vector-icons/Entypo';
 import Foundation from '@expo/vector-icons/Foundation';
@@ -14,8 +12,7 @@ import { usePlayer } from '../../context/PlayerContext';
 
 
 export default function TabsLayout() {
-  const { logout } = useAuth()
-  const { play, pause, isPlaying, currentTrack } = usePlayer()
+  const { play, pause, isPlaying, currentTrack, next } = usePlayer()
 
   return (
     <View className="flex-1 bg-neutral-950">
@@ -59,14 +56,21 @@ export default function TabsLayout() {
             tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "library" : "library-outline"} size={26} color={color} />,
           }}
         />
+        <Tabs.Screen
+          name="playlist/[id]"
+          options={{
+            href: null,
+            headerShown: false
+          }}
+        />
       </Tabs>
 
       {currentTrack && (
-        <View className='absolute bottom-[65px] w-[96%] self-center flex-row items-center bg-neutral-900 rounded-xl p-2 border border-neutral-800 shadow-lg shadow-black'>
+        <View className='absolute bottom-[65px] w-[96%] self-center flex-row items-center bg-neutral-900 rounded-xl p-2 border border-neutral-800 shadow-lg shadow-black z-10'>
 
           <Image
             className='w-12 h-12 rounded-md bg-neutral-800'
-            source={{ uri: currentTrack?.thumbnail_url }}
+            source={{ uri: currentTrack?.thumbnail }}
           />
 
           <View className='justify-center ml-3 flex-1'>
@@ -87,7 +91,7 @@ export default function TabsLayout() {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={next}>
               <Entypo name="controller-next" size={28} color="#d946ef" />
             </TouchableOpacity>
           </View>

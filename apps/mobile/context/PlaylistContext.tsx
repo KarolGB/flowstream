@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import apiClient from "../api/client";
+import { useAuth } from "./AuthContext";
 
 
 interface PlaylistContextType {
@@ -27,13 +28,13 @@ export const usePlaylist = () => {
 
 export const PlaylistProvider = ({ children }: { children: React.ReactNode }) => {
     const [playlists, setPlaylists] = useState<PlaylistContextType["playlists"]>([])
-
+    const { isAuthenticated } = useAuth();
     const refreshPlaylists = async () => {
         try {
             const response = await apiClient.get("/playlists/")
             setPlaylists(response.data.playlists)
         } catch (error) {
-            console.log(error)
+            return
         }
     }
 
@@ -42,7 +43,7 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
             const response = await apiClient.post("/playlists/", { name })
             setPlaylists([...playlists, response.data.playlist])
         } catch (error) {
-            console.log(error)
+            return
         }
     }
 
@@ -51,22 +52,26 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
             await apiClient.delete(`/playlists/${id}/`)
             setPlaylists(playlists.filter(playlist => playlist.id !== id))
         } catch (error) {
-            console.log(error)
+            return
         }
     }
 
     const addTrackToPlaylist = async (playlistId: number, youtubeId: string, name: string, artist: string, thumbnail: string, duration_seconds: number) => {
         try {
-            await apiClient.post(`/playlists/${playlistId}/tracks/`, { "youtube_id": youtubeId, "name": name, "artist": artist, "thumbnail": thumbnail, "duration_seconds": duration_seconds })
+            await apiClient.post(`/playlists/${playlistId}/tracks/`, { "youtube_id": youtubeId, name, artist, thumbnail, duration_seconds })
             refreshPlaylists()
         } catch (error) {
-            console.log(error)
+            return
         }
     }
 
     useEffect(() => {
-        refreshPlaylists()
-    }, [])
+        if (isAuthenticated) {
+            refreshPlaylists()
+        } else {
+            setPlaylists([])
+        }
+    }, [isAuthenticated])
 
     return (
         <PlaylistContext.Provider value={{ playlists, refreshPlaylists, createPlaylist, addTrackToPlaylist }}>
