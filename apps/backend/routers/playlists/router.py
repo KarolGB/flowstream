@@ -110,9 +110,16 @@ def import_playlists_from_csv(file: UploadFile, payload = Depends(verify_access_
     with db_connection() as cursor:
         for track in tracks:
             title_search = f"%{track['title']}%"
+            print(title_search)
             artist_search = f"%{track['artist']}%"
-            cursor.execute("SELECT id from tracks WHERE title LIKE %s AND artist LIKE %s", (title_search, artist_search))
-            result = cursor.fetchone()
+            print(artist_search)
+            try:
+                cursor.execute("SELECT id from tracks WHERE title LIKE %s AND artist LIKE %s ", (title_search, artist_search)) 
+                result = cursor.fetchone()
+            except Exception as e:
+                print(f"Error al buscar track en la base de datos: {e}")
+                continue
+
             if result:
                 track_id = result["id"]
             else:
@@ -120,8 +127,12 @@ def import_playlists_from_csv(file: UploadFile, payload = Depends(verify_access_
                 if not search_resut:
                     continue
                 track_data = search_resut[0]
-                cursor.execute("INSERT INTO tracks (youtube_id, title,artist,thumbnail,duration_seconds) VALUES (%s, %s,%s,%s,%s)",(track_data["youtube_id"],track_data["title"],track_data["artist"],track_data["thumbnail_url"],track_data["duration_seconds"]))
-                track_id = cursor.lastrowid
+                try:
+                    cursor.execute("INSERT INTO tracks (youtube_id, title,artist,thumbnail,duration_seconds) VALUES (%s, %s,%s,%s,%s)",(track_data["youtube_id"],track_data["title"],track_data["artist"],track_data["thumbnail"],track_data["duration_seconds"]))
+                    track_id = cursor.lastrowid
+                except Exception as e:
+                    print(f"Error al buscar track en YouTube: {e}")
+                    continue
             cursor.execute("INSERT INTO playlists_tracks (playlist_id, track_id,position) VALUES (%s, %s,%s)", (playlist_id, track_id,position))
             position += 1
     return {"message": "Playlists imported successfully"}
