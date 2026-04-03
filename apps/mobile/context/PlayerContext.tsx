@@ -207,7 +207,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         const configureBackgroundAudio = async () => {
             try {
                 await setAudioModeAsync({
-                    playsInSilentMode: true, // Esto es lo que hace la magia
+                    playsInSilentMode: true,
                 });
             } catch (error) {
                 console.error("Error configurando el audio en segundo plano", error);
