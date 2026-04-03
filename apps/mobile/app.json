@@ -38,7 +38,12 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ]
     ],
     "scheme": "your-app-scheme",
     "experiments": {
@@ -47,8 +52,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1780f86a-c303-4e21-93d1-57b329a374ae"
+        "projectId": "dace9987-f71b-4508-b13f-262f9792fdc7"
       }
-    }
+    },
+    "owner": "karolkgb"
   }
 }
