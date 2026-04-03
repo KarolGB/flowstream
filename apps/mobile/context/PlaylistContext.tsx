@@ -41,7 +41,7 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
     const createPlaylist = async (name: string) => {
         try {
             const response = await apiClient.post("/playlists/", { name })
-            setPlaylists([...playlists, response.data.playlist])
+            refreshPlaylists()
         } catch (error) {
             return
         }

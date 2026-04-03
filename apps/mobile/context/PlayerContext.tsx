@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode, useState, useEffect, useRef } from "react";
-import { preload, useAudioPlayer } from "expo-audio"
+import { setAudioModeAsync } from 'expo-audio';
+import { useAudioPlayer } from "expo-audio"
 import apiClient from "../api/client";
 import { prefetch } from "expo-router/build/global-state/routing";
 
@@ -202,6 +203,19 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
         return () => subscription.remove();
     }, [player, isPlaying, currentIndex, currentQueue, isShuffle]);
+    useEffect(() => {
+        const configureBackgroundAudio = async () => {
+            try {
+                await setAudioModeAsync({
+                    playsInSilentMode: true, // Esto es lo que hace la magia
+                });
+            } catch (error) {
+                console.error("Error configurando el audio en segundo plano", error);
+            }
+        };
+
+        configureBackgroundAudio();
+    }, []);
 
     return (
         <PlayerContext.Provider value={{ play, pause, next, previous, isPlaying, currentTime, playTrack, currentTrack, playPlaylist, toogleShuffle, playlistId }}>
