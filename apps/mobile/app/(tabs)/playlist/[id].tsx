@@ -75,7 +75,7 @@ const PlayListDetailScreen = () => {
                 <TouchableOpacity onPress={toogleShuffle} className="w-12 h-12 bg-neutral-700 rounded-full items-center justify-center border-purple-600 border-2">
                     <Entypo name="shuffle" size={24} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => playPlaylist(id, tracks)} className="w-16 h-16 bg-purple-700/50 rounded-full items-center justify-center shadow-2xl shadow-white">
+                <TouchableOpacity onPress={() => playPlaylist(id, tracks, -1)} className="w-16 h-16 bg-purple-700/50 rounded-full items-center justify-center shadow-2xl shadow-white">
                     {playlistId === id && isPlaying ? (
                         <FontAwesome5 name="pause" size={24} color="white" />
                     ) : (
@@ -86,9 +86,9 @@ const PlayListDetailScreen = () => {
             </View>
             <FlatList
                 data={tracks}
-                keyExtractor={item => item.youtube_id}
+                keyExtractor={item => item.position.toString()}
                 renderItem={({ item }) => (
-                    <TouchableOpacity className="flex-row items-center bg-neutral-900/50 p-3 rounded-xl mb-3 border border-neutral-800/50">
+                    <TouchableOpacity onPress={() => playPlaylist(id, tracks, item.position - 1)} className="flex-row items-center bg-neutral-900/50 p-3 rounded-xl mb-3 border border-neutral-800/50">
                         <View className="w-6 mr-4 justify-center items-center">
                             {currentTrack?.youtube_id === item.youtube_id ? (
                                 isPlaying ? <PlayingEqualizer /> : <PausedEqualizer />

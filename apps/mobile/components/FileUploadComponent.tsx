@@ -10,19 +10,18 @@ export default function CsvImporter() {
     const [isUploading, setIsUploading] = useState(false);
     const { refreshPlaylists } = usePlaylist()
 
-    const pickCsvFile = async () => {
+    const pickFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
-                type: "*/*", // 👈 Dejamos que el SO muestre todo para evitar bloqueos
+                type: "*/*",
                 copyToCacheDirectory: true,
             });
 
             if (!result.canceled) {
                 const file = result.assets[0];
 
-                // 👇 LA VALIDACIÓN MANUAL (El secreto del Arquitecto) 👇
+
                 if (!file.name.toLowerCase().endsWith('.csv')) {
-                    Alert.alert("Formato Inválido", "Por favor, selecciona un archivo terminado en .csv");
                     return;
                 }
 
@@ -33,7 +32,7 @@ export default function CsvImporter() {
         }
     };
 
-    const uploadCsvToFastAPI = async () => {
+    const uploadCsv = async () => {
         if (!selectedCsv) return;
         setIsUploading(true);
 
@@ -41,21 +40,17 @@ export default function CsvImporter() {
         formData.append('file', {
             uri: selectedCsv.uri,
             name: selectedCsv.name,
-            type: 'text/csv', // Aquí sí forzamos el tipo para FastAPI
+            type: 'text/csv',
         } as any);
 
         try {
-            // Enviamos el CSV crudo a tu Raspberry Pi
             const response = await apiClient.post('/playlists/import-csv', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
+            refreshPlaylists()
 
-            Alert.alert("¡Éxito!", `Se han importado ${response.data.imported_count} canciones.`);
-            refreshPlaylists() // Refresca las playlists para mostrar la nueva
-
-            setSelectedCsv(null); // Limpiamos la UI
+            setSelectedCsv(null);
         } catch (error) {
-            Alert.alert("Error", "Hubo un problema al subir el CSV.");
             console.error(error);
         } finally {
             setIsUploading(false);
@@ -65,7 +60,7 @@ export default function CsvImporter() {
     return (
         <View className="p-4 bg-neutral-950 rounded-xl border border-neutral-800">
             <TouchableOpacity
-                onPress={pickCsvFile}
+                onPress={pickFile}
                 className="bg-neutral-900 border border-fuchsia-500 rounded-lg p-4 flex-row items-center justify-center gap-2"
             >
                 <Ionicons name="document-text-outline" size={24} color="#d946ef" />
@@ -77,7 +72,7 @@ export default function CsvImporter() {
                     <Text className="text-white font-bold">{selectedCsv.name}</Text>
 
                     <TouchableOpacity
-                        onPress={uploadCsvToFastAPI}
+                        onPress={uploadCsv}
                         disabled={isUploading}
                         className={`mt-3 p-3 rounded-md items-center ${isUploading ? 'bg-fuchsia-800' : 'bg-fuchsia-600'}`}
                     >

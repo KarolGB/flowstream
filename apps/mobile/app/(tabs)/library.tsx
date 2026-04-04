@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { TouchableOpacity, Text, View, Image, TextInput, FlatList, BackHandler } from "react-native"
+import { TouchableOpacity, Text, View, TextInput, FlatList, BackHandler } from "react-native"
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { usePlaylist } from "../../context/PlaylistContext";
 import FontAwesome5 from "@expo/vector-icons/build/FontAwesome5";
-
-interface PlaylistData {
-    id: string;
-    name: string;
-    cover: string;
-    total_tracks: number;
-}
 
 const library = () => {
     const router = useRouter();
@@ -69,7 +62,6 @@ const library = () => {
                             </Text>
                         </View>
 
-                        {/* Icono de flecha sutil */}
                         <Ionicons name="chevron-forward" size={20} color="#404040" className="mr-1" />
                     </TouchableOpacity>
                 )}
@@ -87,7 +79,7 @@ const library = () => {
                 <TouchableOpacity onPress={() => setAddPlaylistScreen(false)} className="p-4 px-8 rounded-2xl bg-neutral-900/50">
                     <Text className="text-white">Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => createPlaylist(playlistName)} className="p-4 px-8 rounded-2xl bg-neutral-600/65">
+                <TouchableOpacity onPress={() => { createPlaylist(playlistName); setAddPlaylistScreen(false) }} className="p-4 px-8 rounded-2xl bg-neutral-600/65">
                     <Text className="text-white">Create</Text>
                 </TouchableOpacity>
             </View>
