@@ -30,9 +30,10 @@ interface PlayerContextType {
     currentTime: number;
     playTrack: (track: Track) => void;
     currentTrack: Track | PlaylistTracks | null;
-    playPlaylist: (id: string | string[], tracks: PlaylistTracks[]) => void;
+    playPlaylist: (id: string | string[], tracks: PlaylistTracks[], startIndex: number) => void;
     toogleShuffle: () => void;
     playlistId: string | string[] | null;
+    isLoading: boolean;
 
 }
 
@@ -45,9 +46,10 @@ const PlayerContext = createContext<PlayerContextType>({
     currentTime: 0,
     playTrack: (track: Track) => { },
     currentTrack: null,
-    playPlaylist: (id: string | string[], tracks: PlaylistTracks[]) => { },
+    playPlaylist: (id: string | string[], tracks: PlaylistTracks[], startIndex: number) => { },
     toogleShuffle: () => { },
-    playlistId: null
+    playlistId: null,
+    isLoading: false
 });
 
 
@@ -64,7 +66,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [currentTime, setCurrentTime] = useState(0)
     const [isShuffle, setIsShuffle] = useState(true)
     const [currentIndex, setCurrentIndex] = useState(0)
-    const [currentUrl, setCurrentUrl] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+
     const isChangingTrack = useRef(false)
     const prefetchedData = useRef<{ index: number, url: string } | null>(null)
     const isPrefetching = useRef(false)
@@ -96,8 +99,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const play = () => {
-        player.play()
         setIsPlaying(true)
+        player.play()
     }
 
     const pause = () => {
@@ -121,6 +124,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const playTrack = async (track: Track | PlaylistTracks) => {
+        setCurrentTrack(track)
+        setIsLoading(true)
         let url;
         if (prefetchedData.current?.url) {
             url = prefetchedData.current?.url
@@ -132,18 +137,20 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             isChangingTrack.current = false
             isPrefetching.current = false
             prefetchedData.current = null
+            setIsLoading(false)
             return
         }
         isPrefetching.current = false
-        setCurrentTrack(track)
         player.replace(url)
         play()
         isChangingTrack.current = false
         prefetchedData.current = null
+        setIsLoading(false)
     }
 
     const prefetchNextSong = async () => {
         if (isPrefetching.current || prefetchedData.current) return;
+        isPrefetching.current = true;
         let nextIndex = calculate_next_index()
         if (nextIndex >= currentQueue.length && !isShuffle) return;
         const nextTrack = currentQueue[nextIndex];
@@ -160,9 +167,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     }
 
-    const playPlaylist = (id: string | string[], tracks: PlaylistTracks[], startIndex = 0) => {
+    const playPlaylist = (id: string | string[], tracks: PlaylistTracks[], startIndex = -1) => {
         if (tracks.length === 0) return;
-        if (id === playlistId && isPlaying) {
+        if (id === playlistId && isPlaying && startIndex === -1) {
             pause()
             return
         }
@@ -173,7 +180,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         setPlaylistId(id)
         setCurrentQueue(tracks)
         let nextIndex = startIndex
-        if (isShuffle) {
+        if (isShuffle && startIndex === -1) {
             do {
                 nextIndex = Math.floor(Math.random() * tracks.length);
             } while (nextIndex === currentIndex && tracks.length > 1);
@@ -195,7 +202,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
             if (isPlaying && player.duration && player.duration > 0) {
-                if ((player.duration - player.currentTime < 15) && !isPrefetching.current && !prefetchedData.current) {
+                if ((player.currentTime > 1) && !isPrefetching.current && !prefetchedData.current) {
                     prefetchNextSong();
                 }
             }
@@ -208,6 +215,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             try {
                 await setAudioModeAsync({
                     playsInSilentMode: true,
+                    shouldPlayInBackground: true,
+                    interruptionMode: "doNotMix"
                 });
             } catch (error) {
                 console.error("Error configurando el audio en segundo plano", error);
@@ -218,7 +227,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <PlayerContext.Provider value={{ play, pause, next, previous, isPlaying, currentTime, playTrack, currentTrack, playPlaylist, toogleShuffle, playlistId }}>
+        <PlayerContext.Provider value={{ play, pause, next, previous, isPlaying, currentTime, playTrack, currentTrack, playPlaylist, toogleShuffle, playlistId, isLoading }}>
             {children}
         </PlayerContext.Provider>
 
