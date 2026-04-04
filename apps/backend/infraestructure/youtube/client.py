@@ -3,6 +3,22 @@ import yt_dlp
 
 ytmusic = YTMusic()
 
+YDL_OPTS = {
+        'format': 'bestaudio/best',
+        'quiet': True, 
+        'no_warnings': True,
+        'noplaylist': True,
+        "skip_download": True,
+        "extract_flat": False,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'] 
+            }
+        }
+    }
+
+global_extractor = yt_dlp.YoutubeDL(YDL_OPTS)
+
 def get_track_info(youtube_id: str):
     try:
         info = ytmusic.get_song(youtube_id)
@@ -37,21 +53,13 @@ def search_tracks(query: str):
         print(f"Error buscando en YouTube Music: {e}")
         return []
 def get_audio_stream_url(youtube_id: str) -> str:
-    
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': True, 
-        'no_warnings': True,
-        'noplaylist': True,
-    }
 
     youtube_url = f"https://www.youtube.com/watch?v={youtube_id}"
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(youtube_url, download=False)            
-            direct_url = info.get('url')
-            return direct_url
+        info = global_extractor.extract_info(youtube_url, download=False)            
+        direct_url = info.get('url')
+        return direct_url
     except Exception as e:
         print(f"Error extrayendo URL de streaming para {youtube_id}: {e}")
         return None
