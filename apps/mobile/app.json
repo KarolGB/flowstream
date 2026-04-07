@@ -43,6 +43,14 @@
         {
           "enableBackgroundPlayback": true
         }
+      ],
+      [
+        "expo-media-control",
+        {
+          "enableBackgroundAudio": true,
+          "audioSessionCategory": "playback",
+          "notificationIcon": "./assets/icono.png"
+        }
       ]
     ],
     "scheme": "your-app-scheme",

@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode, useState, useEffect, useRef } fro
 import { setAudioModeAsync } from 'expo-audio';
 import { useAudioPlayer } from "expo-audio"
 import apiClient from "../api/client";
-import { prefetch } from "expo-router/build/global-state/routing";
+import { MediaControl, Command, PlaybackState, MediaControlEvent } from 'expo-media-control';
 
 export interface Track {
     youtube_id: string;
@@ -69,7 +69,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(false)
 
     const previousTracks = useRef<number[]>([])
-
     const isChangingTrack = useRef(false)
     const prefetchedData = useRef<{ index: number, url: string } | null>(null)
     const isPrefetching = useRef(false)
@@ -102,10 +101,12 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const play = () => {
         setIsPlaying(true)
+        MediaControl.updatePlaybackState(PlaybackState.PLAYING);
         player.play()
     }
 
     const pause = () => {
+        MediaControl.updatePlaybackState(PlaybackState.PAUSED);
         player.pause()
         setIsPlaying(false)
     }
@@ -135,6 +136,11 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
+    const actionsRef = useRef({ play, pause, next, previous });
+    useEffect(() => {
+        actionsRef.current = { play, pause, next, previous };
+    });
+
     const playTrack = async (track: Track | PlaylistTracks) => {
         setCurrentTrack(track)
         setIsLoading(true)
@@ -154,18 +160,14 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         }
         isPrefetching.current = false
         player.replace(url)
-        player.setActiveForLockScreen(
-            true,
-            {
-                title: track.title,
-                artist: track.artist,
-                artworkUrl: track.thumbnail
+        MediaControl.updateMetadata({
+            title: track.title,
+            artist: track.artist,
+            artwork: {
+                uri: track.thumbnail
             },
-            {
-                showSeekBackward: true,
-                showSeekForward: true,
-            }
-        );
+            duration: track.duration_seconds
+        });
         play()
         isChangingTrack.current = false
         prefetchedData.current = null
@@ -248,6 +250,60 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         };
 
         configureBackgroundAudio();
+    }, []);
+
+    useEffect(() => {
+        const initializeControls = async () => {
+            try {
+                await MediaControl.enableMediaControls({
+                    capabilities: [
+                        Command.PLAY,
+                        Command.PAUSE,
+                        Command.NEXT_TRACK,
+                        Command.PREVIOUS_TRACK,
+                    ],
+                    compactCapabilities: [
+                        Command.PREVIOUS_TRACK,
+                        Command.PLAY,
+                        Command.NEXT_TRACK,
+                    ],
+                    notification: {
+                        icon: 'ic_music_note',
+                        color: '#1976D2',
+                    },
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize media controls:', error);
+            }
+        };
+
+        initializeControls();
+
+        const removeListener = MediaControl.addListener((event: MediaControlEvent) => {
+            console.log('Media control event:', event.command);
+
+            switch (event.command) {
+                case Command.PLAY:
+                    actionsRef.current.play();
+                    break;
+                case Command.PAUSE:
+                    actionsRef.current.pause();
+                    break;
+                case Command.NEXT_TRACK:
+                    actionsRef.current.next();
+                    break;
+                case Command.PREVIOUS_TRACK:
+                    actionsRef.current.previous();
+                    break;
+            }
+        });
+
+        // Cleanup on unmount
+        return () => {
+            removeListener();
+            MediaControl.disableMediaControls();
+        };
     }, []);
 
     return (
