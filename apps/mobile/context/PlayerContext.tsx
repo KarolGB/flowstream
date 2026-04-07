@@ -68,6 +68,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
 
+    const previousTracks = useRef<number[]>([])
+
     const isChangingTrack = useRef(false)
     const prefetchedData = useRef<{ index: number, url: string } | null>(null)
     const isPrefetching = useRef(false)
@@ -109,6 +111,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const next = async () => {
+        previousTracks.current.push(currentIndex);
         let targetIndex;
         if (prefetchedData.current) {
             targetIndex = prefetchedData.current.index;
@@ -120,7 +123,16 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const previous = () => {
-        return
+        if (player.currentTime > 3) {
+            player.seekTo(0)
+            return
+        }
+        let targetIndex;
+        if (previousTracks.current.length > 0) {
+            targetIndex = previousTracks.current.pop()!;
+            setCurrentIndex(targetIndex)
+            playTrack(currentQueue[targetIndex])
+        }
     }
 
     const playTrack = async (track: Track | PlaylistTracks) => {
@@ -142,6 +154,18 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         }
         isPrefetching.current = false
         player.replace(url)
+        player.setActiveForLockScreen(
+            true,
+            {
+                title: track.title,
+                artist: track.artist,
+                artworkUrl: track.thumbnail
+            },
+            {
+                showSeekBackward: true,
+                showSeekForward: true,
+            }
+        );
         play()
         isChangingTrack.current = false
         prefetchedData.current = null
