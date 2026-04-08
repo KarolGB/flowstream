@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { TouchableOpacity, Text, View, TextInput, FlatList, BackHandler } from "react-native"
+import { TouchableOpacity, Text, View, TextInput, FlatList, BackHandler, Modal } from "react-native"
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { usePlaylist } from "../../context/PlaylistContext";
@@ -10,8 +10,9 @@ const library = () => {
     const router = useRouter();
     const [addPlaylistScreen, setAddPlaylistScreen] = useState(false)
     const [playlistName, setPlaylistName] = useState("")
+    const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null)
     const [error, setError] = useState("")
-    const { playlists, refreshPlaylists, createPlaylist } = usePlaylist()
+    const { playlists, createPlaylist, deletePlaylist } = usePlaylist()
 
     useEffect(() => {
         const backAction = () => {
@@ -31,6 +32,10 @@ const library = () => {
         return () => backHandler.remove();
     }, [addPlaylistScreen]);
 
+    const closeModal = () => {
+        setSelectedPlaylist(null);
+    }
+
     return !addPlaylistScreen ? (
 
         <SafeAreaView className="flex-1 bg-neutral-950 p-4">
@@ -47,7 +52,7 @@ const library = () => {
                 showsVerticalScrollIndicator={false}
                 className="my-8"
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => router.push(`/playlist/${item.id}`)} className="flex-row items-center mb-4 bg-neutral-900/50 p-3 rounded-2xl border border-neutral-800/50 shadow-sm shadow-black/20">
+                    <TouchableOpacity onPress={() => router.push(`/playlist/${item.id}`)} onLongPress={() => setSelectedPlaylist(item.id)} className="flex-row items-center mb-4 bg-neutral-900/50 p-3 rounded-2xl border border-neutral-800/50 shadow-sm shadow-black/20">
 
                         <View className="w-16 h-16 rounded-xl bg-neutral-800 mr-4 overflow-hidden border justify-center items-center border-neutral-700/50">
                             <FontAwesome5 name="music" size={20} color="#525252" />
@@ -67,7 +72,34 @@ const library = () => {
                 )}
 
             />
+            <Modal
+                visible={!!selectedPlaylist}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={closeModal}
+                statusBarTranslucent={true}
+            >
+                <View className="flex-1 justify-end pb-12">
 
+
+                    <TouchableOpacity
+                        className="absolute inset-0 bg-black/80"
+                        activeOpacity={1}
+                        onPress={closeModal}
+                    />
+                    <TouchableOpacity
+                        onPress={() => {
+                            deletePlaylist(selectedPlaylist!)
+                            closeModal()
+                        }}
+                        className="flex-row items-center bg-neutral-900 p-4 rounded-2xl border border-neutral-800"
+                    >
+                        <FontAwesome5 name="minus" size={20} color="#d946ef" className="mr-4" />
+                        <Text className="text-white font-bold text-base">Eliminar Playlist</Text>
+                    </TouchableOpacity>
+                </View>
+
+            </Modal>
 
         </SafeAreaView>
     ) : (

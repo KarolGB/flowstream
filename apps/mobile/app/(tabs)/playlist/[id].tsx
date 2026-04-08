@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native"
+import { View, Text, FlatList, TouchableOpacity, Image, Modal } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useLocalSearchParams } from "expo-router"
 import { useEffect, useState } from "react"
@@ -9,6 +9,7 @@ import { usePlayer } from "../../../context/PlayerContext"
 import LoadingScreen from "../../../components/LoadingScreen"
 import PlayingEqualizer from "../../../components/PlayingEqualizer"
 import PausedEqualizer from "../../../components/PausedEqualizer"
+import { usePlaylist } from "../../../context/PlaylistContext"
 
 
 interface PlaylistDetail {
@@ -25,20 +26,25 @@ interface PlaylistDetail {
         thumbnail: string,
         duration_seconds: number,
         position: number
-    }[]
+    }
 }
 
 const PlayListDetailScreen = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [playlistDetail, setPlaylistDetail] = useState<PlaylistDetail | null>(null)
-    const [tracks, setTracks] = useState<PlaylistDetail["tracks"]>([])
+    const [tracks, setTracks] = useState<PlaylistDetail["tracks"][]>([])
+    const [pressedSong, setPressedSong] = useState<PlaylistDetail["tracks"] | null>(null);
     const { id } = useLocalSearchParams()
     const { playPlaylist, toogleShuffle, playlistId, isPlaying, currentTrack } = usePlayer()
+    const { deleteTrackFromPlaylist } = usePlaylist()
 
     const formatSeconds = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }
+    const closeModal = () => {
+        setPressedSong(null);
     }
 
     useEffect(() => {
@@ -88,7 +94,7 @@ const PlayListDetailScreen = () => {
                 data={tracks}
                 keyExtractor={item => item.position.toString()}
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => playPlaylist(id, tracks, item.position - 1)} className="flex-row items-center bg-neutral-900/50 p-3 rounded-xl mb-3 border border-neutral-800/50">
+                    <TouchableOpacity onPress={() => playPlaylist(id, tracks, item.position - 1)} onLongPress={() => setPressedSong(item)} className="flex-row items-center bg-neutral-900/50 p-3 rounded-xl mb-3 border border-neutral-800/50">
                         <View className="w-6 mr-4 justify-center items-center">
                             {currentTrack?.youtube_id === item.youtube_id ? (
                                 isPlaying ? <PlayingEqualizer /> : <PausedEqualizer />
@@ -114,7 +120,7 @@ const PlayListDetailScreen = () => {
                                 {item.artist} • {formatSeconds(item.duration_seconds)}
                             </Text>
                         </View>
-                        <TouchableOpacity className="p-2 ml-2">
+                        <TouchableOpacity className="p-2 ml-2" onPress={() => setPressedSong(item)}>
                             <Entypo name="dots-three-horizontal" size={20} color="#d946ef" />
                         </TouchableOpacity>
                     </TouchableOpacity>
@@ -122,6 +128,52 @@ const PlayListDetailScreen = () => {
             >
 
             </FlatList>
+            <Modal
+                visible={!!pressedSong}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={closeModal}
+                statusBarTranslucent={true}
+            >
+
+                <View className="flex-1 justify-end">
+
+
+                    <TouchableOpacity
+                        className="absolute inset-0 bg-black/80"
+                        activeOpacity={1}
+                        onPress={closeModal}
+                    />
+
+
+                    <View className="bg-neutral-950 w-full rounded-t-3xl border-t border-neutral-800 min-h-[30%] max-h-[80%] pb-12 pt-2 shadow-2xl shadow-black">
+                        <View className="w-12 h-1.5 bg-neutral-700 rounded-full self-center mb-6" />
+                        <View className="px-6">
+                            <View className="flex-row items-center mb-6">
+                                <Image source={{ uri: pressedSong?.thumbnail }} className="w-16 h-16 rounded-xl mr-4 bg-neutral-800" />
+                                <View className="flex-1">
+                                    <Text className="text-white font-bold text-lg" numberOfLines={1}>{pressedSong?.title}</Text>
+                                    <Text className="text-neutral-400">{pressedSong?.artist}</Text>
+                                </View>
+                            </View>
+
+                            <View className="border-t border-neutral-800 w-full mb-4" />
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    deleteTrackFromPlaylist(playlistDetail!.id, pressedSong!.id)
+                                    closeModal()
+                                    setTracks(tracks.filter(track => track.id !== pressedSong!.id))
+                                }}
+                                className="flex-row items-center bg-neutral-900 p-4 rounded-2xl border border-neutral-800"
+                            >
+                                <FontAwesome5 name="minus" size={20} color="#d946ef" className="mr-4" />
+                                <Text className="text-white font-bold text-base">Eliminar de la Playlist</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>)
 }
 

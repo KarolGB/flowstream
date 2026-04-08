@@ -115,9 +115,6 @@ export default function TabsLayout() {
         </View >
       )
       }
-
-
-
     </View >
   );
 }
