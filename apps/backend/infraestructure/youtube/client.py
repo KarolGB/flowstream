@@ -36,7 +36,6 @@ def get_track_info(youtube_id: str):
 
 def search_tracks(query: str):
     try:
-        ytmusic = YTMusic()
         results = ytmusic.search(query=query, filter="songs")
         clean_results = []
         for item in results:
@@ -63,3 +62,21 @@ def get_audio_stream_url(youtube_id: str) -> str:
     except Exception as e:
         print(f"Error extrayendo URL de streaming para {youtube_id}: {e}")
         return None
+    
+def get_radio_tracks(videoId):
+    try:
+        results = ytmusic.get_watch_playlist(videoId)
+        clean_results = []
+        for item in results["tracks"]:
+            clean_results.append({
+                "youtube_id": item.get("videoId"),
+                "title": item.get("title"),
+                "artist": item["artists"][0]["name"] if item.get("artists") else "Desconocido",
+                "duration_seconds": item.get("duration_seconds"),
+                "thumbnail": item["thumbnail"][-1]["url"] if item.get("thumbnail") else None
+            })
+        return clean_results
+
+    except Exception as e:
+        print(f"Error obteniendo radio tracks: {e}")
+        return []

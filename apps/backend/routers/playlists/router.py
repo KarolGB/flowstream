@@ -87,7 +87,7 @@ def add_track_to_playlist(playlist_id: str, track_data : PlaylistAddTrack, paylo
     return {"message": "Track added to playlist successfully"}
 
 @router.delete("/{playlist_id}/tracks/{track_id}")
-def delete_track_from_playlist(playlist_id: str, track_id: str, payload = Depends(verify_access_token)):
+def delete_track_from_playlist(playlist_id: str, track_id: int, payload = Depends(verify_access_token)):
     user_id = payload["sub"]
     with db_connection() as cursor:
         cursor.execute("SELECT id from playlists WHERE id = %s AND user_id = %s", (playlist_id, user_id))

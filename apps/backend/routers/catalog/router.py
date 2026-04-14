@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from infraestructure.youtube.client import search_tracks,get_track_info
+from infraestructure.youtube.client import get_radio_tracks, search_tracks,get_track_info
 from core.security import verify_access_token
 from db.database import db_connection
 
@@ -18,3 +18,8 @@ async def get_track(youtube_id: str, user_id = Depends(verify_access_token)):
         if not track_info:
             track_info = get_track_info(youtube_id)
     return track_info
+
+@router.get("/radio/{videoId}")
+async def get_radio(videoId: str, user_id = Depends(verify_access_token)):
+    results = get_radio_tracks(videoId)
+    return {"results": results}
