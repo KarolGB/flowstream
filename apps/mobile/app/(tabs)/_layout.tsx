@@ -12,7 +12,7 @@ import { usePlayer } from '../../context/PlayerContext';
 
 
 export default function TabsLayout() {
-  const { play, pause, isPlaying, currentTrack, next, currentTime, isLoading } = usePlayer()
+  const { play, pause, isPlaying, currentTrack, next, currentTime, isLoading, previous } = usePlayer()
   const duration = currentTrack?.duration_seconds || 1
   let progressPercentage = (currentTime / duration) * 100
   progressPercentage = Math.min(100, Math.max(0, progressPercentage));
@@ -59,6 +59,13 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'Configuración',
+            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "settings" : "settings-outline"} size={26} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="playlist/[id]"
           options={{
             href: null,
@@ -85,7 +92,7 @@ export default function TabsLayout() {
               <ActivityIndicator className='self-center justify-self-center' size="large" color="#d946ef" />
             ) : (
               <View className='flex-row gap-4 items-center mr-2'>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={previous}>
                   <Foundation name="previous" size={28} color="#d946ef" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={isPlaying ? pause : play}>
