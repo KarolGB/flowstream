@@ -5,22 +5,35 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { usePlaylist } from "../../context/PlaylistContext";
 import FontAwesome5 from "@expo/vector-icons/build/FontAwesome5";
+import * as DocumentPicker from 'expo-document-picker';
+import apiClient from "../../api/client";
 
 const library = () => {
     const router = useRouter();
-    const [addPlaylistScreen, setAddPlaylistScreen] = useState(false)
+    const [addPlaylistModal, setAddPlaylistModal] = useState<boolean>(false)
     const [playlistName, setPlaylistName] = useState("")
     const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null)
     const [error, setError] = useState("")
-    const { playlists, createPlaylist, deletePlaylist } = usePlaylist()
+    const { playlists, createPlaylist, deletePlaylist, refreshPlaylists } = usePlaylist()
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         const backAction = () => {
-            if (addPlaylistScreen) {
-                setAddPlaylistScreen(false);
+            if (addPlaylistModal) {
+                setAddPlaylistModal(false);
                 setPlaylistName("");
                 return true;
             }
+            if (selectedPlaylist) {
+                setSelectedPlaylist(null);
+                return true;
+            }
+            if (addPlaylistModal) {
+                setAddPlaylistModal(false);
+                setPlaylistName("");
+                return true;
+            }
+
             return false;
         };
 
@@ -30,19 +43,60 @@ const library = () => {
         );
 
         return () => backHandler.remove();
-    }, [addPlaylistScreen]);
+    }, [addPlaylistModal]);
 
     const closeModal = () => {
         setSelectedPlaylist(null);
+        setAddPlaylistModal(false)
     }
+    const pickFile = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: "*/*",
+                copyToCacheDirectory: true,
+            });
 
-    return !addPlaylistScreen ? (
+            if (!result.canceled) {
+                const file = result.assets[0];
+
+
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    return;
+                }
+
+                setIsUploading(true);
+                const formData = new FormData();
+                formData.append('file', {
+                    uri: file.uri,
+                    name: file.name,
+                    type: 'text/csv',
+                } as any);
+                try {
+                    const response = await apiClient.post('/playlists/import-csv', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                    refreshPlaylists()
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    setIsUploading(false);
+                }
+                setAddPlaylistModal(false)
+
+            }
+        } catch (error) {
+            console.error("Error selecting file:", error);
+        }
+    };
+
+
+    return (
 
         <SafeAreaView className="flex-1 bg-neutral-950 p-4">
             <View className="flex-row justify-between items-center mb-6 mt-2">
                 <Text className="text-white text-3xl font-extrabold tracking-tight">Library</Text>
 
-                <TouchableOpacity onPress={() => setAddPlaylistScreen(true)} className="bg-neutral-900 p-2.5 rounded-full border border-neutral-800 shadow shadow-black/30">
+                <TouchableOpacity onPress={() => setAddPlaylistModal(true)} className="bg-neutral-900 p-2.5 rounded-full border border-neutral-800 shadow shadow-black/30">
                     <Ionicons name="add-circle" size={26} color="#d946ef" />
                 </TouchableOpacity>
             </View>
@@ -67,7 +121,7 @@ const library = () => {
                             </Text>
                         </View>
 
-                        <Ionicons name="chevron-forward" size={20} color="#404040" className="mr-1" />
+                        <Ionicons name="chevron-forward" size={20} color="#d946ef" className="mr-1" />
                     </TouchableOpacity>
                 )}
 
@@ -100,21 +154,38 @@ const library = () => {
                 </View>
 
             </Modal>
+            <Modal
+                visible={addPlaylistModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={closeModal}
+                statusBarTranslucent={true}
+            >
+                <View className="flex-1 justify-end">
+                    <TouchableOpacity
+                        className="absolute inset-0 bg-black/80"
+                        activeOpacity={1}
+                        onPress={closeModal}
+                    />
+                    <View className="bg-neutral-950 w-full rounded-t-3xl mt-4 max-h-[80%] pb-12 pt-2 shadow-2xl shadow-black gap-4 px-4">
+                        <TouchableOpacity
+                            className="flex-row items-center bg-neutral-900 p-4 rounded-2xl border border-neutral-800"
+                        >
+                            <FontAwesome5 name="plus" size={20} color="#d946ef" className="mr-4" />
+                            <Text className="text-white font-bold text-base">Create PlayList</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className="flex-row items-center bg-neutral-900 p-4 rounded-2xl border border-neutral-800"
+                            onPress={pickFile}
+                        >
+                            <FontAwesome5 name="upload" size={20} color="#d946ef" className="mr-4" />
+                            <Text className="text-white font-bold text-base">Import PlayList from CSV</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
-        </SafeAreaView>
-    ) : (
-        <SafeAreaView className="flex-1 bg-neutral-950 p-4 justify-center items-center">
-            <View className="w-full">
-                <TextInput placeholder="Playlist Name" autoFocus value={playlistName} className="text-white bg-neutral-900/50 rounded-xl p-4 pr-12 w-full" keyboardType="default" placeholderTextColor="gray" onSubmitEditing={() => createPlaylist(playlistName)} onChangeText={setPlaylistName} returnKeyType="send" ></TextInput>
-            </View>
-            <View className="flex-row gap-4 mt-8">
-                <TouchableOpacity onPress={() => setAddPlaylistScreen(false)} className="p-4 px-8 rounded-2xl bg-neutral-900/50">
-                    <Text className="text-white">Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { createPlaylist(playlistName); setAddPlaylistScreen(false) }} className="p-4 px-8 rounded-2xl bg-neutral-600/65">
-                    <Text className="text-white">Create</Text>
-                </TouchableOpacity>
-            </View>
+            </Modal>
+
         </SafeAreaView>
     )
 }
