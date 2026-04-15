@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode, useState, useEffect, useRef } from "react";
 import { setAudioModeAsync } from 'expo-audio';
-import { useAudioPlayer } from "expo-audio"
+import { useAudioPlayer, AudioPlayer } from "expo-audio"
 import apiClient from "../api/client";
 import { MediaControl, Command, PlaybackState, MediaControlEvent } from 'expo-media-control';
 
@@ -27,13 +27,13 @@ interface PlayerContextType {
     next: () => void;
     previous: () => void;
     isPlaying: boolean;
-    currentTime: number;
     playTrack: (track: Track) => void;
     currentTrack: Track | PlaylistTracks | null;
     playPlaylist: (id: string | string[], tracks: PlaylistTracks[], startIndex: number) => void;
     toogleShuffle: () => void;
     playlistId: string | string[] | null;
     isLoading: boolean;
+    player: AudioPlayer;
 
 }
 
@@ -43,13 +43,13 @@ const PlayerContext = createContext<PlayerContextType>({
     next: () => { },
     previous: () => { },
     isPlaying: false,
-    currentTime: 0,
     playTrack: (track: Track) => { },
     currentTrack: null,
     playPlaylist: (id: string | string[], tracks: PlaylistTracks[], startIndex: number) => { },
     toogleShuffle: () => { },
     playlistId: null,
-    isLoading: false
+    isLoading: false,
+    player: {} as AudioPlayer
 });
 
 
@@ -63,7 +63,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const [playlistId, setPlaylistId] = useState<string | string[] | null>(null)
     const [currentQueue, setCurrentQueue] = useState<Track[] | PlaylistTracks[]>([])
     const [currentTrack, setCurrentTrack] = useState<Track | null | PlaylistTracks>(null);
-    const [currentTime, setCurrentTime] = useState(0)
     const [isShuffle, setIsShuffle] = useState(true)
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
@@ -81,7 +80,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             const response = await apiClient.get(`/stream/${youtube_id}`)
             const url = response.data.stream_url
             return url
-
         } catch (error) {
             return null
 
@@ -113,6 +111,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const next = async () => {
         previousTracks.current.push(currentIndex);
+        if (currentQueue.length === 0) return;
         let targetIndex;
         if (prefetchedData.current) {
             targetIndex = prefetchedData.current.index;
@@ -218,7 +217,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const subscription = player.addListener("playbackStatusUpdate", () => {
-            setCurrentTime(player.currentTime);
             if (player.playing !== isPlaying) {
                 setIsPlaying(player.playing);
             }
@@ -228,7 +226,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
             if (isPlaying && player.duration && player.duration > 0) {
-                if ((player.currentTime > 1) && !isPrefetching.current && !prefetchedData.current) {
+                if ((player.currentTime > 1) && !isPrefetching.current && !prefetchedData.current && currentQueue.length > 1) {
                     prefetchNextSong();
                 }
             }
@@ -299,7 +297,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             }
         });
 
-        // Cleanup on unmount
         return () => {
             removeListener();
             MediaControl.disableMediaControls();
@@ -307,7 +304,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <PlayerContext.Provider value={{ play, pause, next, previous, isPlaying, currentTime, playTrack, currentTrack, playPlaylist, toogleShuffle, playlistId, isLoading }}>
+        <PlayerContext.Provider value={{ play, pause, next, previous, isPlaying, playTrack, currentTrack, playPlaylist, toogleShuffle, playlistId, isLoading, player }}>
             {children}
         </PlayerContext.Provider>
 
