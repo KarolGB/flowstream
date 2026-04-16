@@ -1,7 +1,5 @@
 {
   "expo": {
-    "name": "flowstream",
-    "slug": "flowstream",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icono.png",
@@ -23,7 +21,6 @@
         "monochromeImage": "./assets/icono.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.mobile",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
