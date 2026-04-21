@@ -6,7 +6,6 @@ import apiClient from "../../api/client";
 import { usePlayer } from "../../context/PlayerContext";
 import { usePlaylist } from "../../context/PlaylistContext";
 import Entypo from '@expo/vector-icons/Entypo';
-import LoadingScreen from "../../components/LoadingScreen";
 
 
 interface SearchResult {
@@ -43,6 +42,11 @@ const search = () => {
     const formatSeconds = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (hours > 0) {
+            return `${hours}:${remainingMinutes < 10 ? '0' : ''}${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     }
 
@@ -128,7 +132,6 @@ const search = () => {
 
                     <View className="bg-neutral-950 w-full rounded-t-3xl border-t border-neutral-800 min-h-[30%] max-h-[80%] pb-12 pt-2 shadow-2xl shadow-black">
 
-                        {/* Barrita decorativa superior */}
                         <View className="w-12 h-1.5 bg-neutral-700 rounded-full self-center mb-6" />
 
                         {!saveInPlaylistModal && pressedSong ? (

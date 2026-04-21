@@ -69,11 +69,13 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const previousTracks = useRef<number[]>([])
     const isChangingTrack = useRef(false)
-    const prefetchedData = useRef<{ index: number, url: string } | null>(null)
+    const prefetchedData = useRef<{ index: number, url: string, video_id: string } | null>(null)
     const isPrefetching = useRef(false)
 
     const toogleShuffle = () => setIsShuffle(!isShuffle)
-    const player = useAudioPlayer("");
+    const player = useAudioPlayer("", {
+        updateInterval: 1000
+    });
 
     const get_stream_url = async (youtube_id: string) => {
         try {
@@ -104,9 +106,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const pause = () => {
+        setIsPlaying(false)
         MediaControl.updatePlaybackState(PlaybackState.PAUSED);
         player.pause()
-        setIsPlaying(false)
     }
 
     const next = async () => {
@@ -143,8 +145,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const playTrack = async (track: Track | PlaylistTracks) => {
         setCurrentTrack(track)
         setIsLoading(true)
+        player.seekTo(0)
+        pause()
         let url;
-        if (prefetchedData.current?.url) {
+        if (prefetchedData.current?.url && prefetchedData.current.video_id === track.youtube_id) {
             url = prefetchedData.current?.url
         } else {
             url = await get_stream_url(track.youtube_id)
@@ -182,7 +186,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         try {
             const url = await get_stream_url(nextTrack.youtube_id);
             if (url) {
-                prefetchedData.current = { "index": nextIndex, url };
+                prefetchedData.current = { "index": nextIndex, "url": url, "video_id": nextTrack.youtube_id };
             }
         } catch (error) {
             console.error("Error precargando la siguiente canción", error);
@@ -217,23 +221,21 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const subscription = player.addListener("playbackStatusUpdate", () => {
-            if (player.playing !== isPlaying) {
-                setIsPlaying(player.playing);
-            }
             if (player.duration && player.currentTime >= player.duration) {
                 if (!isChangingTrack.current) {
-                    next();
+                    actionsRef.current.next();
                 }
             }
-            if (isPlaying && player.duration && player.duration > 0) {
+            if (player.playing && player.duration && player.duration > 0) {
                 if ((player.currentTime > 1) && !isPrefetching.current && !prefetchedData.current && currentQueue.length > 1) {
+                    console.log("Prefetching next song...");
                     prefetchNextSong();
                 }
             }
         });
 
         return () => subscription.remove();
-    }, [player, isPlaying, currentIndex, currentQueue, isShuffle]);
+    }, [player]);
     useEffect(() => {
         const configureBackgroundAudio = async () => {
             try {

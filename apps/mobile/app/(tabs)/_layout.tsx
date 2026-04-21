@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from "react-native"
 import Player from '../../components/Player';
@@ -9,6 +9,9 @@ import Player from '../../components/Player';
 
 
 export default function TabsLayout() {
+
+  const segments = useSegments()
+  const insidePlaylist = segments[1] === "playlist"
 
   return (
     <View className="flex-1 bg-neutral-950">
@@ -49,7 +52,7 @@ export default function TabsLayout() {
           name="library"
           options={{
             title: 'Biblioteca',
-            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "library" : "library-outline"} size={26} color={color} />,
+            tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "library" : "library-outline"} size={26} color={focused || insidePlaylist ? '#d946ef' : color} />,
           }}
         />
         <Tabs.Screen

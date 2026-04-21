@@ -1,12 +1,11 @@
 # 🎵 FlowStream
 
-A complete Music Player Add Free, with support for Web, Desktop and Mobile.
+A complete Music Player Add Free mobil App.
 
 ## 🛠️ Stack
 
-**Frontend & Apps**
-* **Web:** React (Vite / Next.js)
-* **Desktop:** Tauri
+**App**
+
 * **Móvil:** React Native
 
 **Backend**

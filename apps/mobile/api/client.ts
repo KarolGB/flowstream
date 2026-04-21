@@ -1,6 +1,7 @@
 import axios from "axios"
 import * as SecureStore from 'expo-secure-store';
 import { DeviceEventEmitter } from 'react-native'
+import { useRef, useEffect, use } from "react";
 
 const apiClient = axios.create({
     timeout:10000,
@@ -12,9 +13,11 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
     async (config) => {
-        const baseUrl = await SecureStore.getItemAsync('baseUrl')
-        if (baseUrl) {
-            config.baseURL = baseUrl
+        if (!apiClient.defaults.baseURL) {
+            const baseUrl = await SecureStore.getItemAsync('baseUrl')
+            if (baseUrl) {
+                apiClient.defaults.baseURL = baseUrl
+            }
         }
         const access_token = await SecureStore.getItemAsync('access_token')
         if (access_token){

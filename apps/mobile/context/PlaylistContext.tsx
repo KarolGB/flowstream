@@ -31,7 +31,7 @@ export const usePlaylist = () => {
 }
 
 export const PlaylistProvider = ({ children }: { children: React.ReactNode }) => {
-    const [playlists, setPlaylists] = useState<PlaylistContextType["playlists"]>([])
+    const [playlists, setPlaylists] = useState<PlaylistContextType["playlists"]>([]);
     const { isAuthenticated } = useAuth();
     const refreshPlaylists = async () => {
         try {
@@ -44,7 +44,7 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
 
     const createPlaylist = async (name: string) => {
         try {
-            const response = await apiClient.post("/playlists/", { name })
+            await apiClient.post("/playlists/", { name })
             refreshPlaylists()
         } catch (error) {
             return

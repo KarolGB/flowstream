@@ -1,7 +1,7 @@
-import { View, Text, FlatList, TouchableOpacity, Image, Modal } from "react-native"
+import { View, Text, FlatList, TouchableOpacity, Image, Modal, BackHandler } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useLocalSearchParams } from "expo-router"
-import { useEffect, useState } from "react"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import { use, useEffect, useState } from "react"
 import apiClient from "../../../api/client"
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -37,10 +37,30 @@ const PlayListDetailScreen = () => {
     const { id } = useLocalSearchParams()
     const { playPlaylist, toogleShuffle, playlistId, isPlaying, currentTrack } = usePlayer()
     const { deleteTrackFromPlaylist } = usePlaylist()
+    const router = useRouter()
+
+    useEffect(() => {
+        const backAction = () => {
+            router.push("/library");
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, [id]);
 
     const formatSeconds = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (hours > 0) {
+            return `${hours}:${remainingMinutes < 10 ? '0' : ''}${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     }
     const closeModal = () => {
@@ -74,7 +94,7 @@ const PlayListDetailScreen = () => {
                 <Text className="text-white text-2xl font-bold">{playlistDetail?.name}</Text>
                 <View className="flex-row gap-4">
                     <Text className="text-neutral-500">{playlistDetail?.total_tracks} canciones</Text>
-                    <Text className="text-neutral-500">{formatSeconds(playlistDetail?.total_duration || 0)}m</Text>
+                    <Text className="text-neutral-500">{formatSeconds(playlistDetail?.total_duration || 0)}H</Text>
                 </View>
             </View>
             <View className="flex-row gap-2 justify-end items-center">
@@ -164,6 +184,7 @@ const PlayListDetailScreen = () => {
                                     deleteTrackFromPlaylist(playlistDetail!.id, pressedSong!.id)
                                     closeModal()
                                     setTracks(tracks.filter(track => track.id !== pressedSong!.id))
+                                    setPlaylistDetail(prev => prev ? { ...prev, total_tracks: prev.total_tracks - 1, total_duration: prev.total_duration - pressedSong!.duration_seconds } : prev)
                                 }}
                                 className="flex-row items-center bg-neutral-900 p-4 rounded-2xl border border-neutral-800"
                             >
