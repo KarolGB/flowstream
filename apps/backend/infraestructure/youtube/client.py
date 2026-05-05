@@ -68,11 +68,15 @@ def get_radio_tracks(videoId):
         results = ytmusic.get_watch_playlist(videoId)
         clean_results = []
         for item in results["tracks"]:
+            duration = item.get("length")
+            minutes = duration.split(":")[0]
+            seconds = duration.split(":")[1]
+            duration = int(minutes) * 60 + int(seconds)
             clean_results.append({
                 "youtube_id": item.get("videoId"),
                 "title": item.get("title"),
                 "artist": item["artists"][0]["name"] if item.get("artists") else "Desconocido",
-                "duration_seconds": item.get("duration_seconds"),
+                "duration_seconds": duration ,
                 "thumbnail": item["thumbnail"][-1]["url"] if item.get("thumbnail") else None
             })
         return clean_results
