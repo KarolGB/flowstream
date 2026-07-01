@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from .schemas import ChangePasswordRequest
 from core.deps import verify_access_token
 
 router = APIRouter(
