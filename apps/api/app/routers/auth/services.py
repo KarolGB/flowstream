@@ -67,8 +67,8 @@ def insert_refresh_token(db: Session, user_id: int, refresh_token: str):
 
 def login_user(db: Session, email: str, password: str) -> User | None:
     user = get_user_by_email(db, email)
-    if not user or not verify_password(password, user.hashed_password):
-        return None
+    if not user or not verify_password(password, user.hashed_password) or not user.is_active:
+        raise HTTPException(status_code=400, detail="Invalid email or password")
     access_token = create_access_token(data={"sub": user.email})
     refresh_token = create_refresh_token(data={"sub": user.email})
     insert_refresh_token(db, user.id, refresh_token)
@@ -78,7 +78,7 @@ def create_user(db: Session, username: str, email: str, password: str) -> User:
     hashed_password = hash_password(password)
     user = get_user_by_email(db, email)
     if user:
-        return None
+        raise HTTPException(status_code=400, detail="User already exists")
     new_user = User(name=username, email=email, hashed_password=hashed_password)
     db.add(new_user)
     db.commit()

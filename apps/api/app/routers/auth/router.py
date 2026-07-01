@@ -11,17 +11,11 @@ router = APIRouter(
 
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)) -> UserResponse:
-    tokens = login_user(db, user.email, user.password)
-    if not tokens["access_token"] or not tokens["refresh_token"]:
-        raise HTTPException(status_code=400, detail="Invalid email or password")
-    return tokens
+    return login_user(db, user.email, user.password)
 
 @router.post("/register")
 def register(user: UserCreate,db: Session = Depends(get_db)) -> UserResponse:
-    tokens = create_user(db, user.username, user.email, user.password)
-    if not tokens["access_token"] or not tokens["refresh_token"]:
-        raise HTTPException(status_code=400, detail="User registration failed")
-    return tokens
+    return create_user(db, user.username, user.email, user.password)
 
 @router.post("/refresh")
 def refresh_token(db: Session = Depends(get_db), payload: dict = Depends(verify_refresh_token)) -> UserResponse:
