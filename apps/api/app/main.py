@@ -6,6 +6,7 @@ import uvicorn
 
 #Routers ###########################################
 from routers.auth.router import router as auth_router
+from routers.users.router import router as user_router
 
 app = FastAPI(
     title="Flowstream API",
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(router=auth_router)
+app.include_router(router=user_router)
 
 @app.get("/")
 def root():
