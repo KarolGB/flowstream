@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const response = await api.get(`${apiUrl}/auth/me`);
+                const response = await api.get(`${apiUrl}/user/me`);
                 setIsAuthenticated(true);
             } catch (error) {
                 setIsAuthenticated(false);
@@ -42,8 +42,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await setItemAsync('authToken', authToken);
             await setItemAsync('refreshToken', refreshToken);
             setIsAuthenticated(true);
-        } catch (error) {
+        } catch (error: any) {
             setIsAuthenticated(false);
+            return Promise.reject(error);
         }
     };
 

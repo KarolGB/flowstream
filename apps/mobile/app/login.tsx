@@ -6,16 +6,23 @@ import { useAuth } from "../context/AuthContext"
 export default function Login() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [error, setError] = useState<string | null>(null)
     const { login } = useAuth()
     const { apiUrl } = useApi()
     const handleLogin = async () => {
-        // Implement login logic here
+        try {
+            await login(email, password)
+            setError(null)
+        } catch (err: any) {
+            setError(err.response.data.detail)
+        }
     }
     return (
         <SafeAreaView className="flex-1 items-center justify-center">
             <View className="flex-1 items-center justify-center">
                 <View className="bg-zinc-800 p-8 rounded-lg">
-                    <Text className="text-white text-2xl font-bold mb-4">Login</Text>
+                    <Text className="text-white text-2xl font-bold">Login</Text>
+                    {error && <Text className="text-red-500 mb-2">{error}</Text>}
                     <Text className="text-white mb-4">API URL: {apiUrl}</Text>
                     <TextInput
                         placeholder="Email"
