@@ -1,12 +1,41 @@
-import { Stack } from "expo-router"
+import { router, Stack } from "expo-router"
+import { useEffect } from "react"
+import { SafeAreaProvider } from "react-native-safe-area-context"
+import { ApiProvider, useApi } from "../context/ApiContext"
+import { AuthProvider, useAuth } from "../context/AuthContext"
 import "../global.css"
-export default function Layout(){
+
+function InitialLayout() {
+    const { apiUrl, isLoading: apiLoading } = useApi()
+    const { isAuthenticated, isLoading: authLoading } = useAuth()
+
+    useEffect(() => {
+        if (apiLoading || authLoading) return;
+        if (!apiUrl) {
+            router.replace("/setup")
+        } else if (!isAuthenticated) {
+            router.replace("/login")
+        }
+    }, [apiUrl, isAuthenticated, apiLoading, authLoading])
+
+    if (apiLoading || authLoading) return;
+
+    return <Stack screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#0a0a0a" },
+        animation: 'none'
+    }}
+    />
+}
+
+export default function RootLayout() {
     return (
-        <Stack screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "#000000" },
-            animation: 'fade'
-        }}
-        />
+        <SafeAreaProvider>
+            <ApiProvider>
+                <AuthProvider>
+                    <InitialLayout />
+                </AuthProvider>
+            </ApiProvider>
+        </SafeAreaProvider>
     )
 }
