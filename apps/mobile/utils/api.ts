@@ -12,7 +12,7 @@ api.interceptors.request.use(
     async (config) => {
         const API_URL = await getItemAsync('apiUrl') || undefined;
         api.defaults.baseURL = API_URL;
-        const token = await getItemAsync('accessToken');
+        const token = await getItemAsync('authToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
