@@ -15,6 +15,8 @@ function InitialLayout() {
             router.replace("/setup")
         } else if (!isAuthenticated) {
             router.replace("/login")
+        } else {
+            router.replace("/home")
         }
     }, [apiUrl, isAuthenticated, apiLoading, authLoading])
 
