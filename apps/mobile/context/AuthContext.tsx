@@ -38,9 +38,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 email,
                 password
             });
-            const { authToken, refreshToken } = response.data;
-            await setItemAsync('authToken', authToken);
-            await setItemAsync('refreshToken', refreshToken);
+            const { access_token, refresh_token } = response.data;
+            await setItemAsync('authToken', access_token);
+            await setItemAsync('refreshToken', refresh_token);
             setIsAuthenticated(true);
         } catch (error: any) {
             setIsAuthenticated(false);
