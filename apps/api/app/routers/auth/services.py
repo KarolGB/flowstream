@@ -103,6 +103,7 @@ def refresh_tokens(db: Session, payload: dict) -> dict:
     revoke_refresh_token(db, payload.get("refresh_token"))
     access_token = create_access_token(data={"sub": user.email})
     refresh_token = create_refresh_token(data={"sub": user.email})
+    insert_refresh_token(db, user.id, refresh_token)
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 def logout_user(db: Session, payload: dict):
