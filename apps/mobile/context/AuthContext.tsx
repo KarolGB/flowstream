@@ -1,4 +1,4 @@
-import { deleteItemAsync, setItemAsync } from "expo-secure-store";
+import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import api from "../utils/api";
 import { useApi } from './ApiContext';
@@ -16,10 +16,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const { apiUrl } = useApi();
+    const { apiUrl, isLoading: isApiLoading } = useApi();
+
 
     useEffect(() => {
         const checkAuth = async () => {
+            if (isApiLoading) return;
+
             try {
                 const response = await api.get(`${apiUrl}/user/me`);
                 setIsAuthenticated(true);
@@ -50,7 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const logout = async () => {
         try {
-            await api.post(`${apiUrl}/auth/logout`);
+            const refresh_token = await getItemAsync('refreshToken');
+            await api.post(`${apiUrl}/auth/logout`, { refresh_token });
             await deleteItemAsync('authToken');
             await deleteItemAsync('refreshToken');
             setIsAuthenticated(false);
