@@ -36,19 +36,20 @@ api.interceptors.response.use(
                 if (!refreshToken) {
                     return Promise.reject(error);
                 }
-                const reponse = await fetch(`${originalRequest.baseURL}/auth/refresh`, {
+                const reponse = await fetch(`${api.defaults.baseURL}/auth/refresh`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        refreshToken: refreshToken,
+                        refresh_token: refreshToken,
                     }),
                 });
-                const { accessToken, refreshToken: newRefreshToken } = await reponse.json();
-                await setItemAsync('accessToken', accessToken);
+
+                const { access_token, refresh_token: newRefreshToken } = await reponse.json();
+                await setItemAsync('authToken', access_token);
                 await setItemAsync('refreshToken', newRefreshToken);
-                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${access_token}`;
                 return api(originalRequest);
             } catch (error) {
                 return Promise.reject(error);
