@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = getenv("DATABASE_URL")
+DATABASE_URL = getenv("DATABASE_URI")
 SECRET_KEY = getenv("SECRET_KEY")
 PRODUCTION = True if getenv("PRODUCTION") == "True" else False
 ALGORITHM = getenv("ALGORITHM")
