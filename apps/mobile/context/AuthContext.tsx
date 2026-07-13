@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
         };
         checkAuth();
-    }, [apiUrl]);
+    }, [isApiLoading]);
 
     const login = async (email: string, password: string) => {
         try {
